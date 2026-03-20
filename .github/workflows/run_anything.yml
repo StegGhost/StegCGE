@@ -12,6 +12,7 @@ on:
           - all
           - tests
           - demo
+          - mcl_demo
           - script
       script_path:
         description: "Python script path to run when mode=script"
@@ -54,6 +55,10 @@ jobs:
         if: ${{ inputs.mode == 'all' || inputs.mode == 'demo' }}
         run: python run_demo.py
 
+      - name: Run MCL demo
+        if: ${{ inputs.mode == 'mcl_demo' }}
+        run: python demo/mcl_demo.py
+
       - name: Run custom script
         if: ${{ inputs.mode == 'script' && inputs.script_path != '' }}
         run: python "${{ inputs.script_path }}"
@@ -66,7 +71,5 @@ jobs:
           path: |
             cge_receipt.json
             demo/sample_repo
+            demo/proposals
           if-no-files-found: ignore
-
-      - name: Run MCL demo
-        run: python demo/mcl_demo.py
