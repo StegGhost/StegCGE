@@ -1,0 +1,69 @@
+name: Run Anything
+
+on:
+  workflow_dispatch:
+    inputs:
+      mode:
+        description: "What to run"
+        required: true
+        default: "all"
+        type: choice
+        options:
+          - all
+          - tests
+          - demo
+          - script
+      script_path:
+        description: "Python script path to run when mode=script"
+        required: false
+        default: ""
+        type: string
+
+jobs:
+  run:
+    runs-on: ubuntu-latest
+
+    steps:
+      - name: Checkout repo
+        uses: actions/checkout@v4
+
+      - name: Set up Python
+        uses: actions/setup-python@v5
+        with:
+          python-version: "3.11"
+
+      - name: Install dependencies
+        run: |
+          python -m pip install --upgrade pip
+          if [ -f requirements.txt ]; then pip install -r requirements.txt; fi
+          pip install pytest
+
+      - name: Show repo files
+        run: ls -R
+
+      - name: Clean prior artifacts
+        run: |
+          rm -f cge_receipt.json || true
+          rm -rf .pytest_cache || true
+
+      - name: Run tests
+        if: ${{ inputs.mode == 'all' || inputs.mode == 'tests' }}
+        run: python -m pytest -q
+
+      - name: Run demo
+        if: ${{ inputs.mode == 'all' || inputs.mode == 'demo' }}
+        run: python run_demo.py
+
+      - name: Run custom script
+        if: ${{ inputs.mode == 'script' && inputs.script_path != '' }}
+        run: python "${{ inputs.script_path }}"
+
+      - name: Upload receipt artifact
+        if: always()
+        uses: actions/upload-artifact@v4
+        with:
+          name: cge-artifacts
+          path: |
+            cge_receipt.json
+            demo/sample_repo
+          if-no-files-found: ignore
