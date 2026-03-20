@@ -30,7 +30,17 @@ def main():
 
     selected = select_patch(results)
 
-    final_state = snapshot_repo(BASE)
+    # Apply selected patch BEFORE recomputing state
+apply_patch(BASE, selected["proposal"]["files"])
+
+# Recompute state AFTER mutation
+final_state = snapshot_repo(BASE)
+final_hash = hash_state(final_state)
+
+# 🔥 Enforce invariant: state must change if patch is non-empty
+if selected["proposal"]["files"]:
+    if base_hash == final_hash:
+        raise RuntimeError("State did not change after applying patch")
     final_hash = hash_state(final_state)
 
     receipt = record_receipt(
