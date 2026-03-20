@@ -1,6 +1,6 @@
 import hashlib
-import json
 import os
+import json
 
 def hash_file(path: str) -> str:
     with open(path, "rb") as f:
