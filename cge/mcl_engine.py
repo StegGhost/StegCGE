@@ -1,5 +1,4 @@
 import hashlib
-import json
 from typing import List, Dict, Any
 
 
@@ -15,10 +14,12 @@ def fingerprint_code(code: str) -> str:
 def compare_candidates(candidates: List[Dict[str, Any]]) -> Dict[str, Any]:
     """
     candidates = [
-        {"source": "gpt", "code": "..."},
-        {"source": "claude", "code": "..."}
+        {"source": "gpt", "code": "...", "proposal": {...}},
+        {"source": "claude", "code": "...", "proposal": {...}}
     ]
     """
+    if not candidates:
+        raise ValueError("No candidates provided")
 
     results = []
 
@@ -27,15 +28,14 @@ def compare_candidates(candidates: List[Dict[str, Any]]) -> Dict[str, Any]:
         results.append({
             "source": c["source"],
             "fingerprint": fp,
-            "code": c["code"]
+            "code": c["code"],
+            "proposal": c.get("proposal"),
         })
 
     groups = {}
-
     for r in results:
         groups.setdefault(r["fingerprint"], []).append(r)
 
-    # Consensus = largest group
     best_fp = max(groups, key=lambda k: len(groups[k]))
     consensus_group = groups[best_fp]
 
@@ -45,5 +45,6 @@ def compare_candidates(candidates: List[Dict[str, Any]]) -> Dict[str, Any]:
         "total_candidates": len(candidates),
         "agreement_ratio": len(consensus_group) / len(candidates),
         "selected_code": consensus_group[0]["code"],
+        "selected_sources": [x["source"] for x in consensus_group],
         "all_results": results,
     }
