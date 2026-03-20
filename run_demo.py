@@ -11,6 +11,9 @@ from cge.consensus_engine import select_patch
 from cge.receipt_engine import record_receipt
 from cge.code_receipt import record_code_receipt
 
+from cge.chain_engine import link_receipts, verify_chain
+from cge.replay_engine import replay_chain
+
 
 BASE = "demo/sample_repo"
 PROPOSALS = [
@@ -31,31 +34,29 @@ def main():
             raw = json.load(f)
         raw_proposals.append(raw)
 
+    # 🔥 Consensus Gate
     consensus_gate = enforce_candidate_consensus(raw_proposals, min_agreement_ratio=0.50)
     selected_consensus_proposal = consensus_gate["selected_proposal"]
     code_receipt = record_code_receipt(consensus_gate["consensus"])
 
+    # Verification phase
     for raw in raw_proposals:
         proposal = normalize_proposal(raw)
         fp = fingerprint_proposal(proposal)
 
         res = verify_proposal(BASE, proposal)
         res["fp"] = fp
-        res["source_model"] = proposal.get("model")
         results.append(res)
 
-    filtered_results = []
-    selected_files = selected_consensus_proposal["files"]
+    # Filter to consensus-aligned proposals
+    filtered = [
+        r for r in results
+        if r["proposal"]["files"] == selected_consensus_proposal["files"]
+    ]
 
-    for res in results:
-        if res["proposal"]["files"] == selected_files:
-            filtered_results.append(res)
+    selected = select_patch(filtered)
 
-    if not filtered_results:
-        raise RuntimeError("Consensus-selected proposal was not present in verification results")
-
-    selected = select_patch(filtered_results)
-
+    # Apply patch
     apply_patch(BASE, selected["proposal"]["files"])
 
     final_state = snapshot_repo(BASE)
@@ -64,19 +65,31 @@ def main():
     if selected["proposal"]["files"] and base_hash == final_hash:
         raise RuntimeError("State did not change after applying patch")
 
-    receipt = record_receipt(
+    # 🔗 Build receipt chain
+    execution_receipt = record_receipt(
         base_hash,
         selected["fp"],
         selected,
         final_hash,
+        parent_hash=None,
     )
+
+    chain = link_receipts([execution_receipt])
+
+    # 🔁 Replay verification
+    replay_result = replay_chain(BASE, chain)
+
+    # 🔍 Chain verification
+    chain_result = verify_chain(chain)
 
     output = {
         "code_receipt": code_receipt,
-        "execution_receipt": receipt,
+        "execution_chain": chain,
+        "chain_valid": chain_result,
+        "replay_result": replay_result,
     }
 
-    with open("cge_receipt.json", "w", encoding="utf-8") as f:
+    with open("cge_receipt.json", "w") as f:
         json.dump(output, f, indent=2)
 
     print(json.dumps(output, indent=2))
