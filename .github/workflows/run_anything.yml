@@ -67,3 +67,6 @@ jobs:
             cge_receipt.json
             demo/sample_repo
           if-no-files-found: ignore
+
+      - name: Run MCL demo
+        run: python demo/mcl_demo.py
