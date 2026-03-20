@@ -1,38 +1,19 @@
-# StegCGE
+# CGE v1
 
-**This is the layer that makes AI-generated code trustworthy.**
+Code Governance Engine v1 is a minimal reference implementation for deterministic, verifiable AI-assisted code evolution.
 
-StegCGE is a repo bootstrap for governed AI-assisted software construction. It provides a starting structure for proposal intake, repo-state hashing, patch verification, receipt emission, and CI validation.
+## What it demonstrates
 
-## Included
+- Multi-proposal intake
+- Proposal normalization and fingerprinting
+- Repo state hashing
+- Test-based patch selection
+- Receipt generation for accepted patch flow
 
-- base package layout
-- starter GitHub Actions validation workflow
-- starter tests
-- proposal and receipt folders
-- docs and architecture notes
-- repo hygiene defaults
+## Quick start
 
-## Suggested first moves
-
-1. Create the GitHub repo as **Public**
-2. Add this bundle
-3. Commit to `main`
-4. Run the validation workflow
-5. Start wiring in CGE modules incrementally
-
-## Initial scope
-
-StegCGE should begin as:
-- proposal governance layer
-- state hashing layer
-- receipt and replay layer
-- multi-LLM patch adjudication layer
-
-## Long-term direction
-
-- trust-weighted model selection
-- patch consensus across models
-- dependency-closure checks
-- deterministic replay of code evolution
-- signed proposal lineage
+```bash
+pip install -r requirements.txt
+python -m pytest -q
+python run_demo.py
+```
