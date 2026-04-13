@@ -1,88 +1,46 @@
-# CGE v1
+# StegCGE — Governed System Compiler
 
-Code Governance Engine v1 is a minimal reference implementation for deterministic, verifiable code evolution at the commit boundary.
+## Core Flow
 
-This is not a framework.  
-This is the smallest working example of admitting change instead of assuming it.
+discovery → seed → receipts → chain → replay → invariants → consensus → enforcement
 
----
+## 🔎 Discovery Phase
 
-## What it demonstrates
+Before any phase executes:
 
-- Multi-proposal intake (competing candidate changes)
-- Proposal normalization and fingerprinting
-- Deterministic repository state hashing
-- Test-based selection against a shared state
-- Admission of exactly one transition
-- Receipt generation for the admitted change
-- Explicit non-selection of all other candidates
+- reconstruct state from state_anchor + deltas
+- verify chain integrity
+- detect capabilities
 
----
+No phase runs without validated state.
 
-## What this actually proves
+## 🔧 Execution Model
 
-CGE v1 reduces governance to a single boundary:
+propose → admit → execute → prove
 
-> multiple possible changes → one admitted transition
+## 📜 State Receipts
 
-Each candidate:
-- is evaluated against the same state  
-- produces observable outcomes  
-- competes under the same conditions  
+Each phase records:
+- state_hash_before
+- state_hash_after
+- changes
+- phase_id
 
-Only one crosses the boundary.
+## 🔒 Guarantees
 
-Everything else is rejected by construction, not ignored.
+- deterministic execution
+- receipt-backed transitions
+- replay + reconstruction verification
+- discovery-driven state awareness
 
----
+## 💡 Value
 
-## Why this matters
+This system ensures:
 
-Most systems:
-- suggest changes  
-- apply changes  
-- log what happened  
+- every change is admissible
+- every transition is provable
+- every system is reconstructable
 
-CGE v1 does something different:
+## 🚀 Vision
 
-> it decides what is allowed to become real, and proves why.
-
-This is the minimal form of:
-- execution-time governance  
-- admissibility at the point of mutation  
-- receipt-backed state transition  
-
----
-
-## The invariant
-
-No change becomes durable unless:
-- it is evaluated against current state
-- it satisfies the selection criteria
-- it is admitted through the boundary
-- a receipt is produced as evidence
-
----
-
-## Quick start
-
-pip install -r requirements.txt  
-python -m pytest -q  
-python run_demo.py
-
----
-
-## What this is not (yet)
-
-- Not a full policy system  
-- Not a sandbox runtime  
-- Not multi-node verified  
-- Not integrated with external execution pipelines  
-
-Those come later.
-
----
-
-## What this is
-
-The smallest possible system that proves code change can be governed, not just executed.
+AI → Proposal → Admission → Execution → Receipt → Replay → Reconstruction → VERIFIED STATE
