@@ -1,0 +1,41 @@
+Function	Input	Output	Token Needed
+`hash_operations(operations[])`	List of operations	SHA-256 hash	No
+`build_merkle_tree(leaves[])`	Operation hashes	Merkle root	No
+`verify_merkle_path(root, leaf, path)`	Root, leaf, proof path	Boolean	No
+`evaluate_constraints(code, constraints[])`	Code + rules	Pass/fail + score	No
+`sign_proof(private_key, proof)`	Key + merkle proof	Signature	Yes (TVC)
+
+Level 0 (leaves): hash(op1), hash(op2), hash(op3), hash(op4)
+Level 1:          hash(hash(op1)+hash(op2)), hash(hash(op3)+hash(op4))
+Level 2 (root):   hash(level1_left + level1_right)
+
+{
+  "merkle_root": "sha256:abc123...",
+  "leaf_count": 47,
+  "operations_hash": "sha256:def456...",
+  "evaluation_score": 0.94,
+  "timestamp": "2026-04-22T01:02:00Z",
+  "temp_repo": "StegGhost/temp-uuid",
+  "signature": "tvc_signed..."
+}
+
+Feature	CGE Light	Full CGE
+Location	Temp repos	StegGhost/StegCGE
+Scope	Single execution batch	Cross-repo analysis
+Output	Merkle proof	Detailed report
+Speed	< 1 second	5-30 seconds
+Token use	None (local)	Yes (cross-org)
+Storage	Minimal	Full logs
+
+# cge-light.py
+import hashlib
+import json
+from typing import List, Dict
+
+def hash_operation(op: Dict) -> str:
+    """Hash a single operation."""
+    return hashlib.sha256(json.dumps(op, sort_keys=True).encode()).hexdigest()
+
+def build_merkle_tree(leaves: List[str]) -> str:
+    """Build merkle tree from leaf hashes, return root."""
+    # ... tree building logic
